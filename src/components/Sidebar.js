@@ -21,40 +21,49 @@ class SideBar extends React.Component {
     componentDidMount() {
         this.getData()
     }
-    getData = () => {
-        fetch("https://api.spaceXdata.com/v3/launches?limit=100")
-            .then(response => response.json())
-            .then(data => {
-                let a = [];
-                data.forEach(element => {
-                    if (!a.includes(element.launch_year))
-                        a.push(element.launch_year)
-                });
-                this.setState({ originalDataYear: a }, () => {
+     getData =  async () => {
+         try{
+            const response= await fetch("https://api.spaceXdata.com/v3/launches?limit=100")
+            const data= await response.json() 
+           
+                    let a = [];
+                    data.forEach(element => {
+                        if (!a.includes(element.launch_year))
+                            a.push(element.launch_year)
+                    });
+                    this.setState({ originalDataYear: a }, () => {
+                        this.setState({ originalData: data }, () => {
+                            this.props.parentCallback(this.state.originalData)
+                        })
+                    })
+         }
+         catch(error){
+             throw 500
+         }
+      
+            
+
+    }
+    handleTrueForLaunch = async () => {
+        try{
+            let params = queryString.parse(window.location.search);
+            params.limit = 100;
+            params.launch_success = true;
+            console.log("launch true", params)
+           const response= await fetch(`https://api.spacexdata.com/v3/launches?${queryString.stringify(params)}`)
+           const data= await response.json()
+              
                     this.setState({ originalData: data }, () => {
                         this.props.parentCallback(this.state.originalData)
                     })
-                })
-            })
-
-    }
-    handleTrueForLaunch = () => {
-        let params = queryString.parse(window.location.search);
-
-
-        params.limit = 100;
-        params.launch_success = true;
-        console.log("launch true", params)
-        fetch(`https://api.spacexdata.com/v3/launches?${queryString.stringify(params)}`)
-            .then(res => res.json())
-            .then(data => {
-                this.setState({ originalData: data }, () => {
-                    this.props.parentCallback(this.state.originalData)
-                })
-            })
-
-        window.history.pushState({}, null, `/?${queryString.stringify(params)}`)
-            ;
+                 
+             
+    
+            window.history.pushState({}, null, `/?${queryString.stringify(params)}`)
+        }
+        catch(err){
+            throw 500
+        }
 
 
     }
